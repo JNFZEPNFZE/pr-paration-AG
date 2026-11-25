@@ -1,0 +1,16 @@
+{% extends "ag/base.html" %}
+{% block titre %}Connexion{% endblock %}
+{% block contenu %}
+<div class="carte" style="max-width: 420px; margin: 3rem auto">
+  <h1>Connexion</h1>
+  <p class="sous-titre">Préparation des assemblées générales de copropriété</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.errors %}<p class="erreur" style="color: var(--rouge)">Identifiant ou mot de passe incorrect.</p>{% endif %}
+    <div class="champ"><label for="id_username">Identifiant</label>{{ form.username }}</div>
+    <div class="champ"><label for="id_password">Mot de passe</label>{{ form.password }}</div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">Se connecter</button>
+  </form>
+</div>
+{% endblock %}

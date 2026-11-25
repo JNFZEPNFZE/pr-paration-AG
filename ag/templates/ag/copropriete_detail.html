@@ -1,0 +1,67 @@
+{% extends "ag/base.html" %}
+{% block titre %}{{ copro }}{% endblock %}
+{% block contenu %}
+<div class="ligne espace">
+  <div>
+    <h1>{{ copro.nom }}</h1>
+    <p class="sous-titre">{{ copro.adresse }} {{ copro.code_postal }} {{ copro.ville }}{% if copro.reference_even %} · Réf. Even {{ copro.reference_even }}{% endif %}</p>
+  </div>
+  <div class="ligne">
+    <a class="bouton secondaire" href="{% url 'copropriete_modifier' copro.pk %}">Modifier</a>
+    <a class="bouton secondaire" href="{% url 'import_even' copro.pk %}">Importer l'export Even</a>
+    <a class="bouton" href="{% url 'assemblee_creer' copro.pk %}">Préparer une AG</a>
+  </div>
+</div>
+
+<div class="grille">
+  <div class="carte"><div class="discret">Copropriétaires</div><div class="chiffre">{{ coproprietaires|length }}</div></div>
+  <div class="carte"><div class="discret">Total des tantièmes</div><div class="chiffre">{{ total }}</div></div>
+  <div class="carte"><div class="discret">Dernier import Even</div><div class="chiffre" style="font-size: 1.1rem">{{ copro.date_dernier_import|date:"d/m/Y H:i"|default:"jamais" }}</div></div>
+</div>
+
+<div class="carte">
+  <h2>Assemblées générales</h2>
+  {% if assemblees %}
+  <table>
+    <tbody>
+    {% for ag in assemblees %}
+      <tr>
+        <td><a href="{{ ag.get_absolute_url }}">{{ ag.get_type_display }} du {{ ag.date|date:"d/m/Y" }}</a></td>
+        <td><span class="pastille neutre">{{ ag.get_statut_display }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="discret">Aucune assemblée.</p>{% endif %}
+</div>
+
+<div class="carte">
+  <h2>Copropriétaires et lots</h2>
+  {% if coproprietaires %}
+  <p class="discret">La case « CS » indique les membres du conseil syndical (information non issue d'Even, conservée lors des imports).</p>
+  <div class="tableau-defilant">
+  <table>
+    <thead><tr><th>Copropriétaire</th><th>Lots</th><th class="nombre">Tantièmes</th><th class="nombre">%</th><th>CS</th></tr></thead>
+    <tbody>
+    {% for c in coproprietaires %}
+      <tr>
+        <td>{{ c.nom }}{% if c.code_even %} <span class="discret">({{ c.code_even }})</span>{% endif %}
+          {% if c.email %}<div class="discret">{{ c.email }}</div>{% endif %}</td>
+        <td>{% for lot in c.lots.all %}{{ lot.numero }}{% if lot.nature %} <span class="discret">{{ lot.nature }}</span>{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+        <td class="nombre">{{ c.voix }}</td>
+        <td class="nombre">{% widthratio c.voix total 100 %}</td>
+        <td>
+          <form class="enligne" method="post" action="{% url 'coproprietaire_conseil' copro.pk c.pk %}">{% csrf_token %}
+            <button type="submit" class="lien" title="Basculer">{% if c.membre_conseil_syndical %}Oui{% else %}—{% endif %}</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="discret">Aucun lot : <a href="{% url 'import_even' copro.pk %}">importer l'export Even</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

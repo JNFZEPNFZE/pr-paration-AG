@@ -1,0 +1,61 @@
+{% extends "ag/base.html" %}
+{% block titre %}Tableau de bord{% endblock %}
+{% block contenu %}
+<h1>Tableau de bord</h1>
+<p class="sous-titre">Assemblées à venir et échéances des 14 prochains jours – {{ aujourdhui|date:"l j F Y" }}</p>
+
+<div class="carte">
+  <h2>Assemblées à venir</h2>
+  {% if lignes %}
+  <div class="tableau-defilant">
+  <table>
+    <thead><tr><th>Date</th><th>Copropriété</th><th>Type</th><th>Statut</th><th>Envoi conseillé</th><th>Contrôles</th></tr></thead>
+    <tbody>
+    {% for l in lignes %}
+      <tr>
+        <td><a href="{{ l.ag.get_absolute_url }}">{{ l.ag.date|date:"d/m/Y H:i" }}</a></td>
+        <td>{{ l.ag.copropriete }}</td>
+        <td>{{ l.ag.type }}</td>
+        <td><span class="pastille neutre">{{ l.ag.get_statut_display }}</span></td>
+        <td>{{ l.ag.date_envoi_conseillee|date:"d/m/Y" }}</td>
+        <td>
+          {% if l.bloquants %}<span class="pastille bloquant">{{ l.bloquants }} bloquant{{ l.bloquants|pluralize }}</span>{% endif %}
+          {% if l.attentions %}<span class="pastille attention">{{ l.attentions }} point{{ l.attentions|pluralize }} d'attention</span>{% endif %}
+          {% if not l.bloquants and not l.attentions %}<span class="pastille ok">OK</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="discret">Aucune assemblée planifiée. Créez-en une depuis la fiche d'une <a href="{% url 'copropriete_liste' %}">copropriété</a>.</p>
+  {% endif %}
+</div>
+
+<div class="carte">
+  <h2>Échéances à traiter</h2>
+  {% if taches %}
+  <div class="tableau-defilant">
+  <table>
+    <tbody>
+    {% for t in taches %}
+      <tr>
+        <td style="width: 7rem" class="{% if t.echeance < aujourdhui %}en-retard{% endif %}">{{ t.echeance|date:"d/m/Y" }}</td>
+        <td>{{ t.libelle }}<div class="discret"><a href="{{ t.assemblee.get_absolute_url }}#planning">{{ t.assemblee.copropriete }} – AG du {{ t.assemblee.date|date:"d/m/Y" }}</a></div></td>
+        <td style="width: 1%">
+          <form class="enligne" method="post" action="{% url 'tache_basculer' t.pk %}">{% csrf_token %}
+            <input type="hidden" name="suivant" value="{% url 'accueil' %}">
+            <button type="submit" class="secondaire">Marquer faite</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="discret">Rien à traiter dans les 14 prochains jours.</p>
+  {% endif %}
+</div>
+{% endblock %}

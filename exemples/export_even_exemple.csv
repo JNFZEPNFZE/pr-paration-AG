@@ -1,0 +1,13 @@
+Code copropriétaire;Nom;Adresse;E-mail;N° lot;Nature;Bâtiment;Tantièmes
+C001;M. et Mme MARTIN Paul;12 rue des Lilas 69003 Lyon;martin@example.org;1;Appartement;A;152
+C001;M. et Mme MARTIN Paul;12 rue des Lilas 69003 Lyon;martin@example.org;21;Cave;A;4
+C002;Mme DURAND Claire;12 rue des Lilas 69003 Lyon;durand@example.org;2;Appartement;A;118
+C002;Mme DURAND Claire;12 rue des Lilas 69003 Lyon;durand@example.org;31;Parking;;12
+C003;SCI LES TILLEULS;5 avenue Foch 75016 Paris;;3;Appartement;A;135
+C003;SCI LES TILLEULS;5 avenue Foch 75016 Paris;;4;Appartement;A;98
+C004;M. BERNARD Luc;12 rue des Lilas 69003 Lyon;bernard@example.org;5;Appartement;B;121
+C004;M. BERNARD Luc;12 rue des Lilas 69003 Lyon;bernard@example.org;22;Cave;B;3
+C005;Mme PETIT Anne;3 impasse Verte 69100 Villeurbanne;petit@example.org;6;Appartement;B;110
+C005;Mme PETIT Anne;3 impasse Verte 69100 Villeurbanne;petit@example.org;32;Parking;;12
+C006;M. ROUX Karim;12 rue des Lilas 69003 Lyon;;7;Local commercial;B;92
+C007;Indivision LEROY;8 rue Neuve 69002 Lyon;leroy@example.org;8;Appartement;B;143

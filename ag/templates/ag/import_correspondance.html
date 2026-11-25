@@ -1,0 +1,52 @@
+{% extends "ag/base.html" %}
+{% block titre %}Import Even – {{ copro }}{% endblock %}
+{% block contenu %}
+<h1>Vérifier les colonnes</h1>
+<p class="sous-titre">{{ copro }} · {{ nom_fichier }} · {{ nb_lignes }} ligne{{ nb_lignes|pluralize }} · étape 2 sur 2</p>
+
+<div class="carte">
+  <h2>Aperçu du fichier</h2>
+  <div class="tableau-defilant">
+  <table>
+    <thead><tr>{% for e in entetes %}<th>{{ e|default:"(sans titre)" }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for ligne in apercu %}<tr>{% for v in ligne %}<td>{{ v }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="carte">
+    <h2>Correspondance des colonnes</h2>
+    <div class="grille">
+      {% for champ in form %}
+      <div class="champ">
+        <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+        {{ champ }}
+        {% for e in champ.errors %}<p class="erreur">{{ e }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit" name="action" value="apercu" class="secondaire">Recalculer le contrôle</button>
+  </div>
+
+  <div class="carte">
+    <h2>Contrôle avant import</h2>
+    {% if erreur %}<div class="alerte bloquant">{{ erreur }}</div>{% endif %}
+    {% if analyse %}
+      <div class="grille">
+        <div><div class="discret">Lots</div><div class="chiffre">{{ analyse.lots|length }}</div></div>
+        <div><div class="discret">Copropriétaires</div><div class="chiffre">{{ analyse.nb_coproprietaires }}</div></div>
+        <div><div class="discret">Total des tantièmes</div><div class="chiffre">{{ analyse.total_tantiemes }}</div>
+          {% if total_actuel and total_actuel != analyse.total_tantiemes %}<div class="discret">Actuellement : {{ total_actuel }}</div>{% endif %}</div>
+      </div>
+      {% for e in analyse.erreurs %}<div class="alerte bloquant">{{ e }}</div>{% endfor %}
+      {% if not analyse.erreurs %}
+        <p class="discret">Vérifiez que le total des tantièmes correspond à celui du règlement de copropriété (souvent 1 000 ou 10 000).</p>
+        <button type="submit" name="action" value="importer">Importer</button>
+      {% endif %}
+    {% endif %}
+    <a class="bouton secondaire" href="{% url 'import_even' copro.pk %}">Changer de fichier</a>
+  </div>
+</form>
+{% endblock %}

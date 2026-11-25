@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ordre du jour – {{ ag.copropriete }}</title>
+  <style>
+    body { font: 11pt/1.5 Georgia, "Times New Roman", serif; color: #111; background: #fff; max-width: 780px; margin: 2rem auto; padding: 0 16px; }
+    h1 { font-size: 16pt; text-align: center; margin-bottom: .2rem; }
+    .centre { text-align: center; margin: 0; }
+    h2 { font-size: 12pt; border-bottom: 1px solid #999; padding-bottom: .2rem; margin-top: 2rem; }
+    .resolution { margin: 1.2rem 0; page-break-inside: avoid; }
+    .resolution h3 { font-size: 11pt; margin: 0 0 .3rem; }
+    .majorite { font-style: italic; color: #444; font-size: 10pt; }
+    .texte { white-space: pre-line; margin: .3rem 0 .3rem 1.2rem; }
+    .pieces { font-size: 10pt; margin-left: 1.2rem; color: #333; }
+    .barre { position: sticky; top: 0; background: #fff; padding: .5rem 0; border-bottom: 1px solid #ddd; margin-bottom: 1rem; font-family: system-ui, sans-serif; }
+    @media print { .barre { display: none; } body { margin: 0; } }
+  </style>
+</head>
+<body>
+  <div class="barre"><button onclick="window.print()">Imprimer / Enregistrer en PDF</button> <a href="{{ ag.get_absolute_url }}">Retour</a></div>
+  <h1>{{ ag.get_type_display }}</h1>
+  <p class="centre"><strong>{{ ag.copropriete.nom }}</strong></p>
+  <p class="centre">{{ ag.copropriete.adresse }} {{ ag.copropriete.code_postal }} {{ ag.copropriete.ville }}</p>
+  <p class="centre">{{ ag.date|date:"l j F Y à H\hi" }}{% if ag.lieu %} – {{ ag.lieu }}{% endif %}</p>
+
+  <h2>Ordre du jour</h2>
+  {% for r in resolutions %}
+  <div class="resolution">
+    <h3>{{ r.ordre }}. {{ r.titre }}</h3>
+    <div class="majorite">{{ r.get_majorite_display }}{% if r.origine == 'copro' and r.demandeur %} – question inscrite à la demande de {{ r.demandeur }}{% endif %}</div>
+    {% if r.texte and r.majorite != 'I' %}<div class="texte"><strong>Projet de résolution :</strong> {{ r.texte }}</div>{% endif %}
+    {% with pieces=r.pieces.all %}{% if pieces %}
+    <div class="pieces">Documents joints : {% for p in pieces %}{% if p.obligatoire %}{{ p.libelle }}{% if not forloop.last %} ; {% endif %}{% endif %}{% endfor %}</div>
+    {% endif %}{% endwith %}
+  </div>
+  {% endfor %}
+</body>
+</html>

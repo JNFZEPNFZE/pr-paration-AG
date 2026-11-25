@@ -1,0 +1,170 @@
+{% extends "ag/base.html" %}
+{% block titre %}AG {{ ag.date|date:"d/m/Y" }} – {{ ag.copropriete }}{% endblock %}
+{% block contenu %}
+<div class="ligne espace">
+  <div>
+    <h1>{{ ag.get_type_display }} du {{ ag.date|date:"l j F Y à H\hi" }}</h1>
+    <p class="sous-titre"><a href="{{ ag.copropriete.get_absolute_url }}">{{ ag.copropriete }}</a>{% if ag.lieu %} · {{ ag.lieu }}{% endif %}</p>
+  </div>
+  <div class="ligne">
+    <a class="bouton secondaire" href="{% url 'assemblee_modifier' ag.pk %}">Modifier</a>
+    <a class="bouton danger" href="{% url 'assemblee_supprimer' ag.pk %}">Supprimer</a>
+  </div>
+</div>
+
+<div class="carte">
+  <div class="ligne espace">
+    <form method="post" action="{% url 'assemblee_statut' ag.pk %}" class="ligne">{% csrf_token %}
+      <label for="statut" style="margin: 0">Statut</label>
+      <select id="statut" name="statut" style="width: auto">
+        {% for v, l in statuts %}<option value="{{ v }}"{% if v == ag.statut %} selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="secondaire">Mettre à jour</button>
+    </form>
+    <div>
+      {% if nb_bloquants %}<span class="pastille bloquant">{{ nb_bloquants }} point{{ nb_bloquants|pluralize }} bloquant{{ nb_bloquants|pluralize }} avant convocation</span>
+      {% else %}<span class="pastille ok">Aucun point bloquant</span>{% endif %}
+    </div>
+  </div>
+  <div class="frise">
+    <div><span class="discret">Envoi conseillé depuis Even</span><strong>{{ ag.date_envoi_conseillee|date:"d/m/Y" }}</strong></div>
+    <div><span class="discret">Limite légale de présentation (J-21)</span><strong>{{ ag.date_limite_legale_convocation|date:"d/m/Y" }}</strong></div>
+    <div><span class="discret">Assemblée</span><strong>{{ ag.date|date:"d/m/Y H:i" }}</strong></div>
+  </div>
+  {% for a in alertes_generales %}<div class="alerte {{ a.niveau }}">{{ a.message }}</div>{% endfor %}
+</div>
+
+<nav class="onglets">
+  <a href="#ordre-du-jour">Ordre du jour</a>
+  <a href="#pieces">Pièces à joindre</a>
+  <a href="#planning">Rétroplanning</a>
+  <a href="#export">Export vers Even</a>
+</nav>
+
+<section id="ordre-du-jour" class="carte">
+  <div class="ligne espace">
+    <h2>Ordre du jour ({{ resolutions|length }} résolution{{ resolutions|length|pluralize }})</h2>
+    <div class="ligne">
+      <form method="post" action="{% url 'resolution_depuis_modele' ag.pk %}" class="ligne">{% csrf_token %}
+        {{ form_modele.modele }}
+        <button type="submit">Ajouter</button>
+      </form>
+      <a class="bouton secondaire" href="{% url 'resolution_creer' ag.pk %}">Résolution libre</a>
+    </div>
+  </div>
+
+  {% for r in resolutions %}
+  <article class="resolution" id="resolution-{{ r.pk }}">
+    <div class="ligne espace">
+      <h3><span class="numero">{{ r.ordre }}.</span> {{ r.titre }}</h3>
+      <div class="ligne">
+        <span class="pastille">{{ r.majorite_courte }}</span>
+        <span class="pastille {% if r.statut == 'validee' %}ok{% else %}neutre{% endif %}">{{ r.get_statut_display }}</span>
+        {% if r.origine != 'syndic' %}<span class="pastille neutre">{{ r.get_origine_display }}{% if r.demandeur %} – {{ r.demandeur }}{% endif %}</span>{% endif %}
+      </div>
+    </div>
+    {% if r.texte %}<div class="texte">{{ r.texte }}</div>{% endif %}
+    {% if r.pieces.all %}
+      <div class="discret">Pièces :
+        {% for p in r.pieces.all %}<span class="pastille {% if p.prete %}ok{% elif p.obligatoire %}bloquant{% else %}neutre{% endif %}">{{ p.libelle }}</span> {% endfor %}
+      </div>
+    {% endif %}
+    {% for a in r.alertes %}<div class="alerte {{ a.niveau }}">{{ a.message }}</div>{% endfor %}
+    <div class="actions" style="margin-top: .6rem">
+      <a class="bouton secondaire" href="{% url 'resolution_modifier' r.pk %}">Modifier</a>
+      <form class="enligne" method="post" action="{% url 'resolution_deplacer' r.pk 'haut' %}">{% csrf_token %}<button class="secondaire" title="Monter">↑</button></form>
+      <form class="enligne" method="post" action="{% url 'resolution_deplacer' r.pk 'bas' %}">{% csrf_token %}<button class="secondaire" title="Descendre">↓</button></form>
+      <form class="enligne" method="post" action="{% url 'resolution_supprimer' r.pk %}" onsubmit="return confirm('Supprimer cette résolution ?')">{% csrf_token %}<button class="danger">Supprimer</button></form>
+    </div>
+  </article>
+  {% empty %}
+  <p class="discret">Aucune résolution. Ajoutez-en depuis la bibliothèque de résolutions types.</p>
+  {% endfor %}
+</section>
+
+<section id="pieces" class="carte">
+  <h2>Pièces à joindre à la convocation</h2>
+  <p class="discret">Les pièces marquées « à notifier » doivent accompagner la convocation pour la validité des décisions (art. 11 du décret du 17 mars 1967).</p>
+  {% if pieces %}
+  <div class="tableau-defilant">
+  <table>
+    <thead><tr><th>Pièce</th><th>Résolution</th><th>État</th><th>Fichier</th><th></th></tr></thead>
+    <tbody>
+    {% for p in pieces %}
+      <tr>
+        <td>{{ p.libelle }}{% if p.obligatoire %} <span class="pastille neutre">à notifier</span>{% endif %}</td>
+        <td>{% if p.resolution %}{{ p.resolution.ordre }}. {{ p.resolution.titre|truncatechars:40 }}{% else %}—{% endif %}</td>
+        <td>
+          <form class="enligne" method="post" action="{% url 'piece_basculer' p.pk %}">{% csrf_token %}
+            <button class="lien">{% if p.prete %}<span class="pastille ok">Prête</span>{% else %}<span class="pastille {% if p.obligatoire %}bloquant{% else %}attention{% endif %}">Manquante</span>{% endif %}</button>
+          </form>
+        </td>
+        <td>
+          {% if p.fichier %}<a href="{% url 'piece_telecharger' p.pk %}">Télécharger</a>
+          {% else %}
+          <form method="post" enctype="multipart/form-data" action="{% url 'piece_televerser' p.pk %}" class="ligne">{% csrf_token %}
+            <input type="file" name="fichier" required style="width: 14rem"><button class="secondaire">Joindre</button>
+          </form>
+          {% endif %}
+        </td>
+        <td><form class="enligne" method="post" action="{% url 'piece_supprimer' p.pk %}" onsubmit="return confirm('Supprimer cette pièce ?')">{% csrf_token %}<button class="lien">Supprimer</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+  <details style="margin-top: 1rem">
+    <summary>Ajouter une pièce</summary>
+    <form method="post" enctype="multipart/form-data" action="{% url 'piece_ajouter' ag.pk %}" style="margin-top: 1rem; max-width: 600px">{% csrf_token %}
+      {% with form=form_piece %}{% include "ag/_champs.html" %}{% endwith %}
+      <button type="submit">Ajouter la pièce</button>
+    </form>
+  </details>
+</section>
+
+<section id="planning" class="carte">
+  <div class="ligne espace">
+    <h2>Rétroplanning</h2>
+    <form method="post" action="{% url 'planning_generer' ag.pk %}">{% csrf_token %}
+      <button class="secondaire" title="Recalcule les étapes standard selon la date et l'ordre du jour, en conservant celles déjà faites">Recalculer</button>
+    </form>
+  </div>
+  <table>
+    <tbody>
+    {% for t in taches %}
+      <tr>
+        <td style="width: 1%">
+          <form class="enligne" method="post" action="{% url 'tache_basculer' t.pk %}">{% csrf_token %}
+            <input type="checkbox" onchange="this.form.submit()" {% if t.faite %}checked{% endif %} aria-label="Fait">
+          </form>
+        </td>
+        <td style="width: 7rem" class="{% if not t.faite and t.echeance < aujourdhui %}en-retard{% endif %}">{{ t.echeance|date:"d/m/Y" }}</td>
+        <td class="{% if t.faite %}tache-faite{% endif %}">{{ t.libelle }}{% if t.reference %} <span class="discret">({{ t.reference }})</span>{% endif %}</td>
+        <td style="width: 1%"><form class="enligne" method="post" action="{% url 'tache_supprimer' t.pk %}">{% csrf_token %}<button class="lien" title="Supprimer">✕</button></form></td>
+      </tr>
+    {% empty %}
+      <tr><td class="discret">Aucune tâche.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <details style="margin-top: 1rem">
+    <summary>Ajouter une tâche</summary>
+    <form method="post" action="{% url 'tache_ajouter' ag.pk %}" style="margin-top: 1rem; max-width: 600px">{% csrf_token %}
+      {% with form=form_tache %}{% include "ag/_champs.html" %}{% endwith %}
+      <button type="submit">Ajouter la tâche</button>
+    </form>
+  </details>
+</section>
+
+<section id="export" class="carte">
+  <h2>Export vers Even</h2>
+  <p>Une fois l'ordre du jour validé, reportez-le dans Even pour émettre les convocations.</p>
+  <div class="ligne">
+    <a class="bouton" href="{% url 'export_ordre_du_jour' ag.pk %}" target="_blank">Ordre du jour imprimable</a>
+    <a class="bouton secondaire" href="{% url 'export_texte' ag.pk %}">Texte (.txt) à copier</a>
+    <a class="bouton secondaire" href="{% url 'export_csv' ag.pk %}">Tableau des résolutions (.csv)</a>
+  </div>
+  {% if ag.notes %}<h3 style="margin-top: 1.25rem">Notes</h3><p style="white-space: pre-line">{{ ag.notes }}</p>{% endif %}
+</section>
+{% endblock %}

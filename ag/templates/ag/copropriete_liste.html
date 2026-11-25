@@ -1,0 +1,31 @@
+{% extends "ag/base.html" %}
+{% block titre %}Copropriétés{% endblock %}
+{% block contenu %}
+<div class="ligne espace">
+  <h1>Copropriétés</h1>
+  <a class="bouton" href="{% url 'copropriete_creer' %}">Nouvelle copropriété</a>
+</div>
+<div class="carte">
+  {% if coproprietes %}
+  <div class="tableau-defilant">
+  <table>
+    <thead><tr><th>Nom</th><th>Réf. Even</th><th>Ville</th><th class="nombre">Copropriétaires</th><th class="nombre">Lots</th><th>Dernier import</th></tr></thead>
+    <tbody>
+    {% for c in coproprietes %}
+      <tr>
+        <td><a href="{{ c.get_absolute_url }}">{{ c.nom }}</a></td>
+        <td>{{ c.reference_even }}</td>
+        <td>{{ c.ville }}</td>
+        <td class="nombre">{{ c.nb_copros }}</td>
+        <td class="nombre">{{ c.nb_lots }}</td>
+        <td>{{ c.date_dernier_import|date:"d/m/Y H:i"|default:"—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="discret">Aucune copropriété. Commencez par en créer une, puis importez l'export Even de ses lots.</p>
+  {% endif %}
+</div>
+{% endblock %}

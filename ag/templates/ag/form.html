@@ -1,0 +1,16 @@
+{% extends "ag/base.html" %}
+{% block titre %}{{ titre }}{% endblock %}
+{% block contenu %}
+<h1>{{ titre }}</h1>
+<div class="carte" style="max-width: 720px">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "ag/_champs.html" %}
+    <div class="ligne">
+      <button type="submit">Enregistrer</button>
+      {% if retour %}<a class="bouton secondaire" href="{{ retour.get_absolute_url }}">Annuler</a>
+      {% else %}<a class="bouton secondaire" href="{% url 'copropriete_liste' %}">Annuler</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

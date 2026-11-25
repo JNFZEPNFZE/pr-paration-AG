@@ -1,0 +1,30 @@
+{% extends "ag/base.html" %}
+{% block titre %}Résolution{% endblock %}
+{% block contenu %}
+<h1>{% if resolution.pk %}Résolution n° {{ resolution.ordre }}{% else %}Nouvelle résolution{% endif %}</h1>
+<p class="sous-titre"><a href="{{ ag.get_absolute_url }}">{{ ag }}</a></p>
+<div class="grille" style="grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); align-items: start">
+  <div class="carte">
+    <form method="post">
+      {% csrf_token %}
+      {% include "ag/_champs.html" %}
+      <div class="ligne">
+        <button type="submit">Enregistrer</button>
+        <a class="bouton secondaire" href="{{ ag.get_absolute_url }}">Annuler</a>
+      </div>
+    </form>
+  </div>
+  <aside class="carte">
+    <h2>Repères</h2>
+    {% if modele %}
+      <p><strong>Majorité habituelle :</strong> {{ majorite_modele }}</p>
+      {% if modele.note %}<p>{{ modele.note }}</p>{% endif %}
+      {% if modele.pieces %}<p><strong>Pièces à notifier :</strong></p><ul>{% for p in modele.pieces %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+    {% endif %}
+    <p class="discret"><strong>Art. 24</strong> : majorité des voix exprimées des présents, représentés et votants par correspondance.<br>
+    <strong>Art. 25</strong> : majorité des voix de tous les copropriétaires ; second vote immédiat à l'art. 24 si le projet a recueilli au moins le tiers des voix (art. 25-1).<br>
+    <strong>Art. 26</strong> : majorité des membres du syndicat représentant au moins les deux tiers des voix ; second vote à l'art. 25 sous conditions (art. 26-1).</p>
+    <p class="discret">Les mentions « … » signalent les éléments à compléter avant l'envoi.</p>
+  </aside>
+</div>
+{% endblock %}

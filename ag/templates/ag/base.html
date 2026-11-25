@@ -1,0 +1,27 @@
+{% load static %}<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}Préparation des AG{% endblock %} – Préparation AG</title>
+  <link rel="stylesheet" href="{% static 'ag/style.css' %}">
+</head>
+<body>
+  <header class="entete">
+    <a class="marque" href="{% url 'accueil' %}">Préparation AG</a>
+    {% if user.is_authenticated %}
+    <nav>
+      <a href="{% url 'accueil' %}">Tableau de bord</a>
+      <a href="{% url 'copropriete_liste' %}">Copropriétés</a>
+    </nav>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Déconnexion</button></form>
+    {% endif %}
+  </header>
+  <main>
+    {% if messages %}
+    <ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% block contenu %}{% endblock %}
+  </main>
+</body>
+</html>

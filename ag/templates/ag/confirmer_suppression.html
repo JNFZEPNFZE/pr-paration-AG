@@ -1,0 +1,13 @@
+{% extends "ag/base.html" %}
+{% block titre %}Supprimer{% endblock %}
+{% block contenu %}
+<h1>Supprimer</h1>
+<div class="carte" style="max-width: 720px">
+  <p>Supprimer définitivement <strong>{{ objet }}</strong>, avec son ordre du jour, ses pièces et son rétroplanning ?</p>
+  <form method="post" class="ligne">
+    {% csrf_token %}
+    <button type="submit" class="danger">Supprimer</button>
+    <a class="bouton secondaire" href="{{ retour.get_absolute_url }}">Annuler</a>
+  </form>
+</div>
+{% endblock %}
